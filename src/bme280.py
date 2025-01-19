@@ -76,8 +76,11 @@ class BME280:
         # load calibration data
         dig_88_a1 = self.i2c.readfrom_mem(self.address, 0x88, 26)
         dig_e1_e7 = self.i2c.readfrom_mem(self.address, 0xE1, 7)
-        self.dig_T1, self.dig_T2, self.dig_T3, self.dig_P1, \n            self.dig_P2, self.dig_P3, self.dig_P4, self.dig_P5, \n            self.dig_P6, self.dig_P7, self.dig_P8, self.dig_P9, \n            _, self.dig_H1 = unpack("<HhhHhhhhhhhhBB", dig_88_a1)
-
+        self.dig_T1, self.dig_T2, self.dig_T3, self.dig_P1, \
+            self.dig_P2, self.dig_P3, self.dig_P4, self.dig_P5, \
+            self.dig_P6, self.dig_P7, self.dig_P8, self.dig_P9, \
+            _, self.dig_H1 = unpack("<HhhHhhhhhhhhBB", dig_88_a1)
+        
         self.dig_H2, self.dig_H3 = unpack("<hB", dig_e1_e7)
         e4_sign = unpack_from("<b", dig_e1_e7, 3)[0]
         self.dig_H4 = (e4_sign << 4) | (dig_e1_e7[4] & 0xF)
