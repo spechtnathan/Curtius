@@ -97,7 +97,7 @@ def loop():
         getBMP280()
 
         #Send Mesurement
-        msg = args.PAYLOAD_FORMAT.format(lat=lat, lon=lon, alt=alt)
+        msg = args.PAYLOAD_FORMAT.format(NAME=args.NAME, plCounter=plCounter, lat=lat, lon=lon, alt=alt, tem=tem, pre=pre, hum=hum, maxStr1=maxStr1, maxStr2=maxStr2)
 
         print(msg) # For testing only to remove
 
