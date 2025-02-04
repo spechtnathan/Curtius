@@ -912,3 +912,4 @@ class RFM69:
 #spi = SPI(0, baudrate=50000, polarity=0, phase=0, firstbit=SPI.MSB)
 #nss = Pin( 5, Pin.OUT, value=True )
 #rst = Pin( 3, Pin.OUT, value=False )
+
