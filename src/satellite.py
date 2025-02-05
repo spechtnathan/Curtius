@@ -55,16 +55,19 @@ class SATELLITE:
         if(ctime - self.lastPayloadTime > 100):  # Send Payload (with 0.5s intervals)
             self.lastPayloadTime = ctime
             # Get Mesurement
-            self.getPos()
-            self.getBMP280()
-            self.getAcc()
 
             #Send Mesurement
-            if(self.plCounter % 3 == 0): msg = struct.pack("Bff", 1, tem, pre)
-            if(self.plCounter % 3 == 1): msg = struct.pack("Bff", 2, self.maxStr1, self.maxStr2)
-            if(self.plCounter % 3 == 2): msg = struct.pack("Bffffff", 3, lat, lon, alt, ax, ay, az)
+            if(self.plCounter % 3 == 0):
+                self.getBMP280()
+                msg = struct.pack("Bff", 1, tem, pre)
+            elif(self.plCounter % 3 == 1):
+                self.getAcc()
+                msg = struct.pack("Bfffff", 2, self.maxStr1, self.maxStr2, ax, ay, az)
+            elif(self.plCounter % 3 == 2):
+                self.getPos()
+                msg = struct.pack("Bfff", 3, lat, lon, alt) if alt != 0 else struct.pack("B", 4)
 
             self.antenne.send(msg)
-            self.save.save_line("last test", msg)
+            self.save.save_line("last test.txt", msg)
 
             self.plCounter += 1
