@@ -2,6 +2,7 @@ from accelerometer import ACCELEROMETER
 from antenne import ANTENNE
 from air import AIR
 from gps import GPS
+from save import SAVE
 import struct
 import time
 
@@ -19,6 +20,7 @@ class SATELLITE:
         self.air = AIR()
         self.gps = GPS()
         self.antenne = ANTENNE()
+        self.save = SAVE()
 
         print("Sending...")
 
@@ -48,18 +50,21 @@ class SATELLITE:
         self.getStrains() # get strains often to have the maximum mesurement
         self.gps.updateLoop()
 
-        ctime = time.time()
+        ctime = time.ticks_ms()
 
-        if(ctime - self.lastPayloadTime > 0.5):  # Send Payload (with 0.5s intervals)
+        if(ctime - self.lastPayloadTime > 100):  # Send Payload (with 0.5s intervals)
+            self.lastPayloadTime = ctime
             # Get Mesurement
             self.getPos()
             self.getBMP280()
             self.getAcc()
 
             #Send Mesurement
-            if(self.plCounter % 3 == 0): self.antenne.send(struct.pack("Bff", 1, tem, pre))
-            if(self.plCounter % 3 == 1): self.antenne.send(struct.pack("Bff", 2, self.maxStr1, self.maxStr2))
-            if(self.plCounter % 3 == 2): self.antenne.send(struct.pack("Bffffff", 3, lat, lon, alt, ax, ay, az))
+            if(self.plCounter % 3 == 0): msg = struct.pack("Bff", 1, tem, pre)
+            if(self.plCounter % 3 == 1): msg = struct.pack("Bff", 2, self.maxStr1, self.maxStr2)
+            if(self.plCounter % 3 == 2): msg = struct.pack("Bffffff", 3, lat, lon, alt, ax, ay, az)
 
-            self.lastPayloadTime = ctime
+            self.antenne.send(msg)
+            self.save.save_line("last test", msg)
+
             self.plCounter += 1
