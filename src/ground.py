@@ -19,6 +19,17 @@ class GROUND:
         print( 'NODE            :', self.rfm.node )
 
         print("Waiting for packets...")
+
+        self.temperature = 0
+        self.pressure = 0
+        self.strain1 = 0
+        self.strain2 = 0
+        self.lat = 0
+        self.lon = 0
+        self.alt = 0
+        self.ax = 0
+        self.ay = 0
+        self.az = 0
     
     def loop(self):
         packet = self.rfm.receive( timeout=0.5 ) # Without ACK
@@ -31,19 +42,25 @@ class GROUND:
             packet_id = packet[0]  # First byte is the packet ID
             
             if packet_id == 1:  # Critical Data (Temp, Humidity, Pressure, Voltage, Altitude)
-                id, temperature, pressure = struct.unpack("Bff", packet)
-                print(f"[Weather] Temp: {temperature}, Pres: {pressure}")
+                id, self.temperature, self.pressure = struct.unpack("Bff", packet)
+                #print(f"[Weather] Temp: {temperature}, Pres: {pressure}")
             
             elif packet_id == 2:  # IMU Data (Gyroscope + Acceleration)
-                id, strain1, strain2 = struct.unpack("Bff", packet)
-                print(f"[Strain] 1: {strain1}, 2: {strain2}")
+                id, self.strain1, self.strain2, self.ax, self.ay, self.az = struct.unpack("Bfffff", packet)
+                #print(f"[Strain] 1: {strain1}, 2: {strain2}")
             
             elif packet_id == 3:  # Magnetometer Data
-                id, lat, lon, alt, ax, ay, az = struct.unpack("Bffffff", packet)
-                print(f"[Space] Lat: {lat}, Lon: {lon}, Alt: {alt}, Ax: {ax}, Ay: {ay}, Az: {az},")
-            
+                id, self.lat, self.lon, self.alt = struct.unpack("Bfff", packet)
+                #print(f"[Space] Lat: {lat}, Lon: {lon}, Alt: {alt}, Ax: {ax}, Ay: {ay}, Az: {az},")
+
+            elif packet_id == 4:  # No position
+                
+                print("no position")
+
             else:
                 print(f"Unknown packet ID: {packet_id}")
 
             rssi = str(self.rfm.last_rssi) # signal strength
-            print("[dB] " + rssi) # print message with signal strength
+            print(f"{rssi}\t{self.temperature}\t{self.pressure}\t{self.strain1}\t{self.strain2}\t{self.lat}\t{self.lon}\t{self.alt}\t{self.ax}\t{self.ay}\t{self.az}") # print message with signal strength
+
+

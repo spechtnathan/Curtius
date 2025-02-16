@@ -1,6 +1,7 @@
 import machine
 import lib.sdcard as sdcard
 import uos
+import time
 
 class SAVE:
     def __init__(self):
@@ -19,11 +20,36 @@ class SAVE:
                         miso=machine.Pin(12))
 
         # Initialize SD card
-        self.sd = sdcard.SDCard(self.spi, self.cs)
+        try:
+            self.sd = sdcard.SDCard(self.spi, self.cs)
+            # Mount filesystem
+            self.vfs = uos.VfsFat(self.sd)
+            uos.mount(self.vfs, "/sd")
+            print("Successfully mounted the sd card")
+        except Exception as e:
+            try:
+                time.sleep(1)  # Wait to let the sd card to be init
+                self.sd = sdcard.SDCard(self.spi, self.cs)
+                # Mount filesystem
+                self.vfs = uos.VfsFat(self.sd)
+                uos.mount(self.vfs, "/sd")
+                print("Successfully mounted the sd card")
+            except Exception as e:
+                try:
+                    time.sleep(1)  # Wait to let the sd card to be init
+                    self.sd = sdcard.SDCard(self.spi, self.cs)
+                    # Mount filesystem
+                    self.vfs = uos.VfsFat(self.sd)
+                    uos.mount(self.vfs, "/sd")
+                    print("Successfully mounted the sd card")
+                except Exception as e:
+                    print("Error while mounting the sd card (but it is likely ok idk why) :", e)
+            
+        
 
-        # Mount filesystem
-        self.vfs = uos.VfsFat(self.sd)
-        uos.mount(self.vfs, "/sd")
+    def save_file(self, filename, text):
+        with open(f"/sd/{filename}", "w") as file:
+            file.write(text)
 
     def save_line(self, filename, line):
         """Appends a line to the specified file on the SD card."""
@@ -31,5 +57,5 @@ class SAVE:
             file.write(line + "\r\n")
     
     def read_save(self, filename):
-        with open(f"/sd/test", "r") as file:
+        with open(f"/sd/{filename}", "r") as file:
             print(file.read())
