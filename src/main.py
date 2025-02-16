@@ -1,18 +1,16 @@
 from machine import Pin
-import time
 from satellite import SATELLITE
 from ground import GROUND
 
 # Configure pins
 led = Pin(25, Pin.OUT) # Onboard LED for clock
 led.toggle()
-identifier_pin = Pin(0, Pin.IN, Pin.PULL_DOWN)  # Using GP0
+identifier_pin = Pin(0, Pin.IN, Pin.PULL_DOWN)  # Using GP0 to detect if it is the satellite or the ground
 
 isSatellite = True
-counter = 1
 
 
-if identifier_pin.value() == 0:
+if identifier_pin.value() == 0: # determine if it is the ground
     print("SATELLITE")
     satellite = SATELLITE()
 
@@ -21,10 +19,9 @@ else:
     isSatellite = False
     ground = GROUND()
 
-while True :
-    counter += 1
-    led.toggle()
+while True : # the main loop that goes forever
+    led.toggle() # led indicator that shows activity
     if(isSatellite) :
-        satellite.loop()
+        satellite.loop() # code for the satellite
     else :
-        ground.loop()
+        ground.loop() # code for the ground

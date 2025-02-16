@@ -19,9 +19,9 @@ class GPS:
                 data = self.gps_serial.read()
                 for byte in data:
                     stat = self.my_gps.update(chr(byte))
+                    """
                     if stat is not None:
                         # Print parsed GPS data
-                        """
                         print('UTC Timestamp:', self.my_gps.timestamp)
                         print('Date:', self.my_gps.date_string('long'))
                         print('Latitude:', self.my_gps.latitude_string())
@@ -30,7 +30,7 @@ class GPS:
                         print('Satellites in use:', self.my_gps.satellites_in_use)
                         print('Horizontal Dilution of Precision:', self.my_gps.hdop)
                         print()
-                        """
+                    """
                 
         except Exception as e:
             print(f"An error occurred: {e}")

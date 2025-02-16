@@ -3,7 +3,7 @@ import args
 from machine import SPI, Pin
 
 class ANTENNE:
-    def __init__(self):
+    def __init__(self): # Initialize RFM69, to transmit data
         # Buses & Pins
         spi = SPI(0, sck=Pin(6), mosi=Pin(7), miso=Pin(4), baudrate=50000, polarity=0, phase=0, firstbit=SPI.MSB)
         nss = Pin(5, Pin.OUT, value=True)
@@ -22,5 +22,5 @@ class ANTENNE:
         print( 'NODE_ID       :', args.NODE_ID )
         print( 'BASESTATION_ID:', args.BASESTATION_ID )
 
-    def send(self, message):
+    def send(self, message): # To send data to ground
         self.rfm.send(message)
