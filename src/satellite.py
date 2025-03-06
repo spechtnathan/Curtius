@@ -42,8 +42,8 @@ class SATELLITE:
         str2 = random.random() * 3.3 # INCOMPLETE
         self.maxStr1 = str1 if str1 > self.maxStr1 else self.maxStr1 # only keep the highest/smallest value between two packets incase of short shocks
         self.minStr1 = str1 if str1 < self.minStr1 else self.minStr1
-        self.maxStr1 = str2 if str2 > self.maxStr2 else self.maxStr2
-        self.minStr1 = str2 if str2 < self.minStr1 else self.minStr1
+        self.maxStr2 = str2 if str2 > self.maxStr2 else self.maxStr2
+        self.minStr2 = str2 if str2 < self.minStr2 else self.minStr2
 
     def getBMP280(self): # Read values from the BMP280 for weather conditions
         global tem, pre
