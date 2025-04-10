@@ -10,6 +10,9 @@ class GROUND:
 
         self.lastGPSpostion = 0
         self.GPSpositionId = 0
+        self.lat = 0
+        self.lon = 0
+        self.alt = 0
 
         # Pins for the RFM69
         spi = SPI(0, sck=Pin(6), mosi=Pin(7), miso=Pin(4), baudrate=50000, polarity=0, phase=0, firstbit=SPI.MSB)
@@ -31,11 +34,9 @@ class GROUND:
         print("Waiting for packets...")
         
     def getPos(self): # Retreive datas from gps antenna
-        global lat, lon, alt
-
-        lat = self.gps.my_gps.latitude[0]
-        lon = self.gps.my_gps.longitude[0]
-        alt = self.gps.my_gps.altitude
+        self.lat = self.gps.my_gps.latitude[0]
+        self.lon = self.gps.my_gps.longitude[0]
+        self.alt = self.gps.my_gps.altitude
     
     def loop(self):
 
@@ -77,10 +78,6 @@ class GROUND:
             self.lastGPSpostion = ctime
 
             self.getPos()
-            print(f"5,{self.GPSpositionId},{lat},{lon},{alt}")
+            print(f"5,{self.GPSpositionId},{self.lat},{self.lon},{self.alt}")
 
             self.GPSpositionId += 1
-
-
-
-

@@ -26,7 +26,8 @@ MicroPython I2C driver for MPU9250 9-axis motion tracking device
 
 # pylint: disable=import-error
 from micropython import const
-from lib.mpu6500 import MPU6500
+from mpu6500 import MPU6500
+from ak8963 import AK8963
 # pylint: enable=import-error
 
 __version__ = "0.4.0"
@@ -50,14 +51,12 @@ class MPU9250:
         char &= ~_I2C_BYPASS_MASK # clear I2C bits
         char |= _I2C_BYPASS_EN
         self.mpu6500._register_char(_INT_PIN_CFG, char)
-
         """
         if ak8963 is None:
             self.ak8963 = AK8963(i2c)
         else:
             self.ak8963 = ak8963
         """
-
     @property
     def acceleration(self):
         """
@@ -82,6 +81,13 @@ class MPU9250:
         Die temperature in celcius as a float.
         """
         return self.mpu6500.temperature
+
+    @property
+    def magnetic(self):
+        """
+        X, Y, Z axis micro-Tesla (uT) as floats.
+        """
+        return self.ak8963.magnetic
 
     @property
     def whoami(self):

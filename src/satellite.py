@@ -17,12 +17,38 @@ class SATELLITE:
         self.maxStr1, self.maxStr2 = 0, 0
         self.minStr1, self.minStr2 = 0, 0
 
+        self.initError = True
+        self.maxAttempt = 3
+
         #Componants
-        self.accelerometer = ACCELEROMETER()
-        self.air = AIR()
-        self.gps = GPS()
-        self.antenne = ANTENNE()
-        self.save = SAVE()
+        while self.initError and self.maxAttempt > 0:
+            self.initError = False
+            try:
+                self.accelerometer = ACCELEROMETER()
+            except:
+                self.initError = True
+                print("No Accelerometer")
+            try:
+                self.air = AIR()
+            except:
+                self.initError = True
+                print("No Air Mesure")
+            try:
+                self.gps = GPS()
+            except:
+                self.initError = True
+                print("No Gps Data")
+            try:
+                self.antenne = ANTENNE()
+            except:
+                self.initError = True
+                print("No Transmitter. CRITICAL")
+            try:
+                self.save = SAVE()
+            except:
+                self.initError = True
+                print("No Save")
+            self.maxAttempt -= 1
 
         print("Sending...")
 
@@ -34,8 +60,12 @@ class SATELLITE:
         alt = self.gps.my_gps.altitude
     
     def getAcc(self): # Retreive datas from the accelerometer
-        global ax, ay, az
-        ax, ay, az = self.accelerometer.sensor.acceleration
+        try:
+            global ax, ay, az
+            ax, ay, az = self.accelerometer.sensor.acceleration
+        except:
+            global ax, ay, az
+            ax, ay, az = 0, 0, 0
 
     def getStrains(self): # Read values from the analogic pins for the strains
         str1 = random.random() * 3.3 # INCOMPLETE (simulated)
@@ -46,9 +76,12 @@ class SATELLITE:
         self.minStr2 = str2 if str2 < self.minStr2 else self.minStr2
 
     def getBMP280(self): # Read values from the BMP280 for weather conditions
-        global tem, pre
-        tem, pre =  self.air.raw_values() # read BMP280: Temp, pressure (hPa), humidity
-
+        try:
+            global tem, pre
+            tem, pre =  self.air.raw_values() # read BMP280: Temp, pressure (hPa), humidity
+        except:
+            global tem, pre
+            tem, pre = 0, 0
     def loop(self): # loop of the satellite
 
         self.getStrains() # get strains often to have the max.min.imum mesurements
