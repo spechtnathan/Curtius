@@ -1,46 +1,16 @@
-import machine
-import time
-import os
-import sdcard
+import utime
+from machine import I2C, Pin
+from mpu9250 import MPU9250
 
-# Définition des broches
-SCK = machine.Pin(10)
-MOSI = machine.Pin(11)
-MISO = machine.Pin(12)
-CS = machine.Pin(13, machine.Pin.OUT)
+i2c = I2C(1, scl=Pin(19), sda=Pin(18))
+sensor = MPU9250(i2c)
 
-def reset_sd():
-    CS.value(1)  # Désélectionner
-    time.sleep(0.5)
-    CS.value(0)  # Sélectionner
-    time.sleep(0.5)
+print("MPU9250 id: " + hex(sensor.whoami))
 
-# Désactivation temporaire du CS
-CS.value(1)  
-time.sleep(0.5)  # Petit délai avant l'initialisation
+while True:
+    print(sensor.acceleration)
+    print(sensor.gyro)
+    #print(sensor.magnetic)
+    print(sensor.temperature)
 
-# Initialisation SPI à une fréquence basse
-spi = machine.SPI(1, baudrate=100_000, polarity=0, phase=0, sck=SCK, mosi=MOSI, miso=MISO)
-
-
-reset_sd()
-
-try:
-    # Initialisation de la carte SD
-    sd = sdcard.SDCard(spi, CS)
-    vfs = os.VfsFat(sd)
-    os.mount(vfs, "/sd")
-    print("Carte SD montée avec succès")
-
-    # Augmentation du baudrate après initialisation
-    spi.init(baudrate=2_000_000)
-except Exception as e:
-    print("Erreur lors du montage de la carte SD :", e)
-
-
-try:
-    print("Test de lecture SD")
-    sd = sdcard.SDCard(spi, CS)
-    print("Lecture OK")
-except Exception as e:
-    print("Carte SD ne répond pas :", e)
+    utime.sleep_ms(1000)
