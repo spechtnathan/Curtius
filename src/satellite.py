@@ -115,6 +115,6 @@ class SATELLITE:
             # Send Packet
             self.antenne.send(msg)
             # Save system INCOMPLETE (saves a struct and not lines of text)
-            self.save.save_line("last test.txt", msg)
+            self.save.save_line(msg)
 
             self.plCounter += 1
