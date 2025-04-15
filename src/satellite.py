@@ -3,6 +3,7 @@ from antenne import ANTENNE
 from air import AIR
 from gps import GPS
 from save import SAVE
+from strain import STRAIN
 import struct
 import time
 import random # FOR TESTING
@@ -48,6 +49,11 @@ class SATELLITE:
             except:
                 self.initError = True
                 print("No Save")
+            try:
+                self.strain = STRAIN()
+            except:
+                self.initError = True
+                print("No Strain")
             self.maxAttempt -= 1
 
         print("Sending...")
@@ -68,8 +74,7 @@ class SATELLITE:
             ax, ay, az = 0, 0, 0
 
     def getStrains(self): # Read values from the analogic pins for the strains
-        str1 = random.random() * 3.3 # INCOMPLETE (simulated)
-        str2 = random.random() * 3.3 # INCOMPLETE
+        str1, str2 = self.strain.get_values()
         self.maxStr1 = str1 if str1 > self.maxStr1 else self.maxStr1 # only keep the highest/smallest value between two packets incase of short shocks
         self.minStr1 = str1 if str1 < self.minStr1 else self.minStr1
         self.maxStr2 = str2 if str2 > self.maxStr2 else self.maxStr2

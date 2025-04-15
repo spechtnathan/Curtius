@@ -8,6 +8,8 @@ class SAVE:
         # Assign chip select (CS) pin (and start it high)
         self.cs = machine.Pin(13, machine.Pin.OUT)
 
+        self.filename = "0"
+
         # Initialize SPI peripheral (start with 1 MHz)
         self.spi = machine.SPI(1,
                         baudrate=1000000,
@@ -42,18 +44,32 @@ class SAVE:
                     print("Successfully mounted the sd card third try")
                 except Exception as e:
                     print("Error while mounting the sd card (but it is likely ok idk why) :", e)
-            
         
+        # Get list filename
+        files = uos.listdir("/sd")
+        self.filename = -1
 
-    def save_file(self, filename, text):
-        with open(f"/sd/{filename}", "w") as file:
+        for file in files:
+            if file.endswith(".csv"):
+                try:
+                    num = int(file[:-4])
+                    if num > self.filename:
+                        self.filename = num
+                except ValueError:
+                    pass
+        
+        self.filename += 1
+            
+
+    def save_file(self, text):
+        with open(f"/sd/{self.filename}", "w") as file:
             file.write(text)
 
-    def save_line(self, filename, line):
+    def save_line(self, line):
         """Appends a line to the specified file on the SD card."""
-        with open(f"/sd/{filename}", "a") as file:
+        with open(f"/sd/{self.filename}", "a") as file:
             file.write(line + "\r\n")
     
-    def read_save(self, filename):
-        with open(f"/sd/{filename}", "r") as file:
+    def read_save(self):
+        with open(f"/sd/{self.filename}", "r") as file:
             print(file.read())
