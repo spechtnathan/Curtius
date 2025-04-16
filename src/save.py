@@ -50,7 +50,7 @@ class SAVE:
         self.filename = -1
 
         for file in files:
-            if file.endswith(".csv"):
+            if file.endswith(".sav"):
                 try:
                     num = int(file[:-4])
                     if num > self.filename:
@@ -61,15 +61,18 @@ class SAVE:
         self.filename += 1
             
 
-    def save_file(self, text):
-        with open(f"/sd/{self.filename}", "w") as file:
-            file.write(text)
-
-    def save_line(self, line):
+    def save_line(self, msg, bu):
         """Appends a line to the specified file on the SD card."""
-        with open(f"/sd/{self.filename}", "a") as file:
-            file.write(line + "\r\n")
-    
-    def read_save(self):
+        with open(f"/sd/{self.filename}.sav", "a") as file:
+            file.write(msg + "\r\n")
+        with open(f"/sd/bu_{self.filename}.sav", "a") as file:
+            file.write(bu + "\r\n")
+
+    def read_line(self, n):
+        """Reads a specific line from the file."""
         with open(f"/sd/{self.filename}", "r") as file:
-            print(file.read())
+            lines = file.readlines()
+            if n < len(lines):
+                return lines[n].strip()
+            else:
+                return None

@@ -2,7 +2,6 @@
 # Complete project details at https://RandomNerdTutorials.com/raspberry-pi-pico-neo-6m-micropython/
 
 from machine import UART, Pin
-from time import sleep
 from lib.micropyGPS import MicropyGPS
 
 class GPS:

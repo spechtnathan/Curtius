@@ -21,6 +21,14 @@ class SATELLITE:
         self.initError = True
         self.maxAttempt = 3
 
+        self.groundAlt = 0
+        self.flightStat = 0
+        # 0 = on ground
+        # 1 = ascending
+        # 2 = descending
+        # 3 = retransmetting
+        # 4 = landed
+
         #Componants
         while self.initError and self.maxAttempt > 0:
             self.initError = False
@@ -60,10 +68,16 @@ class SATELLITE:
 
     def getPos(self): # Retreive datas from gps antenna
         global lat, lon, alt
+        if self.gps.my_gps.valid:
+            lat = self.gps.my_gps.latitude[0]
+            lon = self.gps.my_gps.longitude[0]
+            alt = self.gps.my_gps.altitude - self.gps.my_gps.geoid_height
 
-        lat = self.gps.my_gps.latitude[0]
-        lon = self.gps.my_gps.longitude[0]
-        alt = self.gps.my_gps.altitude
+            if(self.gps.my_gps.speed[2] < 0.1):
+                self.groundAlt = alt
+            elif (self.groundAlt + 100 > alt a):
+                
+
     
     def getAcc(self): # Retreive datas from the accelerometer
         try:
@@ -101,20 +115,27 @@ class SATELLITE:
             if(self.plCounter % 3 == 0):  # Primary Mission (Temp, Pressure)
                 self.getBMP280()
                 msg = struct.pack("Biff", 1, self.plCounter, tem, pre)
+                bu = f"1;{self.plCounter};{tem};{pre};;;;;;;;;;"
 
             elif(self.plCounter % 3 == 1):  # Structure (Strain Reading + Acceleration)
                 self.getAcc()
                 msg = struct.pack("Bifffffff", 2, self.plCounter, self.maxStr1, self.maxStr2, self.minStr1, self.minStr2, ax, ay, az)
+                bu = f"2;{self.plCounter};;;;;;{self.maxStr1};{self.maxStr2};{self.minStr1};{self.minStr2};{ax};{ay};{az}"
                 self.maxStr1, self.maxStr2 = -100, -100 # reset max and min
                 self.minStr1, self.minStr2 = 100, 100
 
             elif(self.plCounter % 3 == 2):  # GPS
                 self.getPos()
-                msg = struct.pack("Bifff", 3, self.plCounter, lat, lon, alt) if alt != 0 else struct.pack("B", 4)
+                if self.gps.my_gps:
+                    msg = struct.pack("Bifff", 3, self.plCounter, lat, lon, alt)
+                    bu = f"3;{self.plCounter};;;{lat};{lon};{alt};;;;;;;"
+                else:
+                    struct.pack("Bi", 4, self.plCounter)
+                    bu = f"4;{self.plCounter};;;;;;;;;;;;"
 
             # Send Packet
             self.antenne.send(msg)
             # Save system INCOMPLETE (saves a struct and not lines of text)
-            self.save.save_line(msg)
+            self.save.save_line(msg, bu)
 
             self.plCounter += 1
