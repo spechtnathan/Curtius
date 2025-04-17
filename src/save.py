@@ -27,23 +27,20 @@ class SAVE:
             # Mount filesystem
             self.vfs = uos.VfsFat(self.sd)
             uos.mount(self.vfs, "/sd")
-            print("Successfully mounted the sd card first try")
         except Exception as e:
             try:
                 time.sleep(1)
                 self.sd = sdcard.SDCard(self.spi, self.cs)
                 self.vfs = uos.VfsFat(self.sd)
                 uos.mount(self.vfs, "/sd")
-                print("Successfully mounted the sd card second try")
             except Exception as e:
                 try:
                     time.sleep(1)
                     self.sd = sdcard.SDCard(self.spi, self.cs)
                     self.vfs = uos.VfsFat(self.sd)
                     uos.mount(self.vfs, "/sd")
-                    print("Successfully mounted the sd card third try")
                 except Exception as e:
-                    print("Error while mounting the sd card (but it is likely ok idk why) :", e)
+                    pass
         
         # Get list filename
         files = uos.listdir("/sd")
