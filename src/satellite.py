@@ -31,6 +31,7 @@ class SATELLITE:
         # 4 = landed
 
         self.startPl = 0
+        self.lastPlRetransmitted = 0
 
         self.working = [False, False, False, False, False, False]
         # [0] = Accelerometer
@@ -111,7 +112,7 @@ class SATELLITE:
             self.startPl = self.plCounter - 30 # start the payloads
         elif(self.flightStat == 1 and self.maxAlt - 100 > alt):
             self.flightStat = 2
-        elif(self.flightStat == 2 and self.groundAlt + 100 > alt):
+        elif(self.flightStat == 2 and self.groundAlt + 500 > alt):
             self.flightStat = 3
         elif(self.flightStat == 3 and self.gps.my_gps.speed[2] < 0.1):
             self.flightStat = 4
@@ -142,18 +143,21 @@ class SATELLITE:
             tem, pre = 0, 0
 
     def retransmit(self): # Retransmit the last packet if no data was received
+        if self.lastPlRetransmitted == 0:
+            self.lastPlRetransmitted = self.startPl
+        if self.plCounter - self.lastPlRetransmitted < 30:
+            self.lastPlRetransmitted = self.startPl
         if self.working[3] and self.working[4]:
-            datas = self.save.read_lines(self.startPl, self.startPl + 5)
+            datas = self.save.read_lines(self.lastPlRetransmitted + 1, self.lastPlRetransmitted + 31)
             for data in datas:
                 try:
                     self.antenne.send(data)
                 except:
                     print("Error in retransmit")
                     pass
+        self.lastPlRetransmitted += 31
     def loop(self): # loop of the satellite
         global tem, pre, lat, lon, alt, ax, ay, az
-
-
         if self.working[5]:
             self.getStrains() # get strains often to have the max.min.imum mesurements
         if self.working[2]:
@@ -167,44 +171,52 @@ class SATELLITE:
             #Send Mesurement
             if(self.plCounter % 3 == 0 and self.working[1]):  # Primary Mission (Temp, Pressure)
                 self.getBMP280()
-                msg = struct.pack("Biff", 1, self.plCounter, tem, pre)
-                bu = f"1;{self.plCounter};{tem};{pre};;;;;;;;;;"
+                msg = struct.pack("Biiff", 1, self.plCounter, ctime, tem, pre)
+                bu = f"1;{self.plCounter};{ctime};{tem};{pre};;;;;;;;;;"
 
             elif(self.plCounter % 3 == 1):  # Structure (Strain Reading + Acceleration)
                 ax, ay, az = 0, 0, 0 # if no accelerometer, set to 0
                 if self.working[0]:
                     self.getAcc()
                 
-                msg = struct.pack("Bifffffff", 2, 
-                                  self.plCounter, 
+                msg = struct.pack("Biifffffff", 2, 
+                                  self.plCounter,
+                                  ctime,
                                   self.maxStr1, 
                                   self.maxStr2, 
                                   self.minStr1, 
                                   self.minStr2, 
                                   ax, ay, az)
-                bu = f"2;{self.plCounter};;;;;;{self.maxStr1};{self.maxStr2};{self.minStr1};{self.minStr2};{ax};{ay};{az}"
+                bu = f"2;{self.plCounter};{ctime};;;;;;{self.maxStr1};{self.maxStr2};{self.minStr1};{self.minStr2};{ax};{ay};{az}"
                 self.maxStr1, self.maxStr2 = -100, -100 # reset max and min
                 self.minStr1, self.minStr2 = 100, 100
 
             elif(self.plCounter % 3 == 2 and self.working[2]):  # GPS
                 if self.gps.my_gps.valid:
                     self.getPos()
-                    msg = struct.pack("Bifff", 3, self.plCounter, lat, lon, alt)
-                    bu = f"3;{self.plCounter};;;{lat};{lon};{alt};;;;;;;"
+                    msg = struct.pack("Biifff", 3, self.plCounter, ctime, lat, lon, alt)
+                    bu = f"3;{self.plCounter};{ctime};;;{lat};{lon};{alt};;;;;;;"
 
             # Send Packet
             try:
                 if self.working[3]:
                     self.antenne.send(msg)
-                self.antenne.send(msg)
-                # Save system INCOMPLETE (saves a struct and not lines of text)
-                self.save.save_line(msg, bu)
+
+                if self.working[4]:
+                    self.save.save_line(msg, bu)
+
             except NameError: # if no data, send an error packet (just 4), :( hope this doesn't happen
-                print(f"No data to send : {self.plCounter % 3}")
-                msg = struct.pack("Bi", 4, self.plCounter)
-                bu = f"4;{self.plCounter};;;;;;;;;;;;"
-                if self.working[3]:
-                    self.antenne.send(msg)
-                self.save.save_line(msg, bu)
+                try:
+                    print(f"No data to send : {self.plCounter % 3}")
+                    msg = struct.pack("Bii", 4, self.plCounter, ctime)
+                    bu = f"4;{self.plCounter};{ctime};;;;;;;;;;;;"
+                    if self.working[3]:
+                        self.antenne.send(msg)
+                    
+                    if self.working[4]:
+                        self.save.save_line(msg, bu)
+                except:
+                    print("No data to send and no antenne or save")
+                    pass
 
             self.plCounter += 1

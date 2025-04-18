@@ -9,6 +9,7 @@ class GROUND:
     def __init__(self): # Initialize ground receiver
 
         self.lastGPSpostion = 0
+        self.lastGPSpostionSatellite = 0
         self.GPSpositionId = 0
         self.lat = 0
         self.lon = 0
@@ -54,19 +55,21 @@ class GROUND:
             rssi = str(self.rfm.last_rssi) # signal strength
             
             if packet_type == 1:  # Primary Mission (Temp, Pressure)
-                type, id, temperature, pressure = struct.unpack("Biff", packet)
-                print(f"{type},{id},{temperature},{pressure},{rssi}")
+                type, id, ctime, temperature, pressure = struct.unpack("Biiff", packet)
+                print(f"{type},{id},{ctime},{temperature},{pressure},{rssi}")
             
             elif packet_type == 2:  # Structure (Strain Reading + Acceleration)
-                type, id, maxStr1, maxStr2, minStr1, minStr2, ax, ay, az = struct.unpack("Bifffffff", packet)
-                print(f"{type},{id},{maxStr1},{maxStr2},{minStr1},{minStr2},{ax},{ay},{az},{rssi}")
+                type, id, ctime, maxStr1, maxStr2, minStr1, minStr2, ax, ay, az = struct.unpack("Biifffffff", packet)
+                print(f"{type},{id},{ctime},{maxStr1},{maxStr2},{minStr1},{minStr2},{ax},{ay},{az},{rssi}")
             
             elif packet_type == 3:  # GPS
-                type, id, lat, lon, alt = struct.unpack("Bifff", packet)
-                print(f"{type},{id},{lat},{lon},{alt},{rssi}")
+                type, id, ctime, lat, lon, alt = struct.unpack("Biifff", packet)
+                self.lastGPSpostionSatellite = ctime
+                print(f"{type},{id},{ctime},{lat},{lon},{alt},{rssi}")
 
-            elif packet_type == 4:  # No position
-                #print("no position yet waiting for gps signal")
+            elif packet_type == 4:  # No data (Empty packet)
+                type, id, ctime = struct.unpack("Biifff", packet)
+                print(f"{type},{id},{ctime},{rssi}")
                 pass
 
             else: # Should not happen
@@ -78,6 +81,6 @@ class GROUND:
             self.lastGPSpostion = ctime
 
             self.getPos()
-            print(f"5,{self.GPSpositionId},{self.lat},{self.lon},{self.alt}")
+            print(f"5,{self.GPSpositionId},{self.lastGPSpostionSatellite},{self.lat},{self.lon},{self.alt}")
 
             self.GPSpositionId += 1

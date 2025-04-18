@@ -65,14 +65,14 @@ class SAVE:
         with open(f"/sd/bu_{self.filename}.sav", "a") as file:
             file.write(bu + "\r\n")
 
-    def read_line(self, n):
-        """Reads a specific line from the file."""
-        with open(f"/sd/{self.filename}", "r") as file:
-            lines = file.readlines()
-            if n < len(lines):
-                return lines[n].strip()
-            else:
-                return None
+    def read_lines_bu(self, a, b):
+        with open(f"/sd/bu_{self.filename}", 'r') as file: 
+            lines = []
+            for i, line in enumerate(file): 
+                if a <= i <= b:  # Read lines 3 to 5 (0-indexed) 
+                    lines.append(line.strip())
+
+            return lines
             
     def read_lines(self, a, b):
         with open(f"/sd/{self.filename}", 'r') as file: 
