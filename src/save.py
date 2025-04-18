@@ -73,3 +73,12 @@ class SAVE:
                 return lines[n].strip()
             else:
                 return None
+            
+    def read_lines(self, a, b):
+        with open(f"/sd/{self.filename}", 'r') as file: 
+            lines = []
+            for i, line in enumerate(file): 
+                if a <= i <= b:  # Read lines 3 to 5 (0-indexed) 
+                    lines.append(line.strip())
+
+            return lines

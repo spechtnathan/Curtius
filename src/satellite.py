@@ -30,6 +30,7 @@ class SATELLITE:
         # 3 = retransmetting
         # 4 = landed
 
+        self.startPl = 0
 
         self.working = [False, False, False, False, False, False]
         # [0] = Accelerometer
@@ -107,6 +108,7 @@ class SATELLITE:
             self.groundAlt = alt
         elif(self.groundAlt + 100 < alt and self.flightStat == 0): # if the altitude is higher than 100m, we are in flight
             self.flightStat = 1
+            self.startPl = self.plCounter - 30 # start the payloads
         elif(self.flightStat == 1 and self.maxAlt - 100 > alt):
             self.flightStat = 2
         elif(self.flightStat == 2 and self.groundAlt + 100 > alt):
@@ -138,6 +140,16 @@ class SATELLITE:
         except:
             global tem, pre
             tem, pre = 0, 0
+
+    def retransmit(self): # Retransmit the last packet if no data was received
+        if self.working[3] and self.working[4]:
+            datas = self.save.read_lines(self.startPl, self.startPl + 5)
+            for data in datas:
+                try:
+                    self.antenne.send(data)
+                except:
+                    print("Error in retransmit")
+                    pass
     def loop(self): # loop of the satellite
         global tem, pre, lat, lon, alt, ax, ay, az
 
