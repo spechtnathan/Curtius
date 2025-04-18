@@ -6,7 +6,7 @@ from save import SAVE
 from strain import STRAIN
 import struct
 import time
-import random # FOR TESTING
+from machine import PWM, Pin
 
 class SATELLITE:
 
@@ -115,9 +115,9 @@ class SATELLITE:
             self.flightStat = 3
         elif(self.flightStat == 3 and self.gps.my_gps.speed[2] < 0.1):
             self.flightStat = 4
-            
-                
-
+            buzzer = PWM(Pin(0))
+            buzzer.freq(4600)
+            buzzer.duty_u16(65535)
     
     def getAcc(self): # Retreive datas from the accelerometer
         global ax, ay, az
