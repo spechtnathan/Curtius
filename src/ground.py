@@ -43,7 +43,7 @@ class GROUND:
 
         self.gps.updateLoop() # update of the gps
 
-        packet = self.rfm.receive( timeout=0.5 ) # Without ACK
+        packet = self.rfm.receive(timeout=0.05)
 
         if packet is None: # No packet received
             print( "." )
@@ -68,7 +68,7 @@ class GROUND:
                 print(f"{type},{id},{ctime/1000},{lat},{lon},{alt},{rssi}")
 
             elif packet_type == 4:  # No data (Empty packet)
-                type, id, ctime = struct.unpack("Biifff", packet)
+                type, id, ctime = struct.unpack("Bii", packet)
                 print(f"{type},{id},{ctime/1000},{rssi}")
                 pass
 
