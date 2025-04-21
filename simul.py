@@ -94,13 +94,22 @@ class SATELLITE:
                 print("No Strain")
             self.maxAttempt -= 1
 
+        self.working[0] = True
+        self.working[1] = True
+        self.working[2] = True
+        self.working[3] = True
+        self.working[4] = True
+        self.working[5] = True
+        
+
         print("Sending...")
 
     def getPos(self): # Retreive datas from gps antenna
         global lat, lon, alt
-        lat = self.gps.my_gps.latitude[0]
-        lon = self.gps.my_gps.longitude[0]
-        alt = self.gps.my_gps.altitude - self.gps.my_gps.geoid_height
+        lat = 50
+        lon = 5
+        x = time.ticks_ms() / 1000
+        alt = -5 / 18 * x * x + 100 / 3 * x
 
         if(self.maxAlt < alt): # if the altitude is higher than the previous one, we are in flight
             self.maxAlt = alt
@@ -125,7 +134,7 @@ class SATELLITE:
         try:
             ax, ay, az = self.accelerometer.sensor.acceleration
         except:
-            ax, ay, az = 0, 0, 0
+            ax, ay, az = 1, 2, 3
 
     def getStrains(self): # Read values from the analogic pins for the strains
         str1, str2 = tuple(v / 65535.0 * 3.3 for v in self.strain.get_values())
@@ -140,7 +149,7 @@ class SATELLITE:
             tem, pre =  self.air.raw_values() # read BMP280: Temp, pressure (hPa), humidity
         except:
             global tem, pre
-            tem, pre = 0, 0
+            tem, pre = 1, 2
 
     def retransmit(self): # Retransmit the last packet if no data was received
         if self.lastPlRetransmitted == 0:
@@ -223,3 +232,13 @@ class SATELLITE:
                         pass
 
             self.plCounter += 1
+
+
+
+# Configure pins
+led = Pin(25, Pin.OUT) # Onboard LED for clock
+led.toggle()
+satellite = SATELLITE()
+while True:
+    led.toggle() # led indicator that shows activity
+    satellite.loop()

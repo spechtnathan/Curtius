@@ -10,7 +10,7 @@ class GROUND:
 
         self.lastGPSpostion = 0
         self.lastGPSpostionSatellite = 0
-        self.GPSpositionId = 0
+        self.GPSpositionId = 3
         self.lat = 0
         self.lon = 0
         self.alt = 0
@@ -56,20 +56,20 @@ class GROUND:
             
             if packet_type == 1:  # Primary Mission (Temp, Pressure)
                 type, id, ctime, temperature, pressure = struct.unpack("Biiff", packet)
-                print(f"{type},{id},{ctime},{temperature},{pressure},{rssi}")
+                print(f"{type},{id},{ctime/1000},{temperature},{pressure},{rssi}")
             
             elif packet_type == 2:  # Structure (Strain Reading + Acceleration)
                 type, id, ctime, maxStr1, maxStr2, minStr1, minStr2, ax, ay, az = struct.unpack("Biifffffff", packet)
-                print(f"{type},{id},{ctime},{maxStr1},{maxStr2},{minStr1},{minStr2},{ax},{ay},{az},{rssi}")
+                print(f"{type},{id},{ctime/1000},{maxStr1},{maxStr2},{minStr1},{minStr2},{ax},{ay},{az},{rssi}")
             
             elif packet_type == 3:  # GPS
                 type, id, ctime, lat, lon, alt = struct.unpack("Biifff", packet)
                 self.lastGPSpostionSatellite = ctime
-                print(f"{type},{id},{ctime},{lat},{lon},{alt},{rssi}")
+                print(f"{type},{id},{ctime/1000},{lat},{lon},{alt},{rssi}")
 
             elif packet_type == 4:  # No data (Empty packet)
                 type, id, ctime = struct.unpack("Biifff", packet)
-                print(f"{type},{id},{ctime},{rssi}")
+                print(f"{type},{id},{ctime/1000},{rssi}")
                 pass
 
             else: # Should not happen
@@ -81,6 +81,6 @@ class GROUND:
             self.lastGPSpostion = ctime
 
             self.getPos()
-            print(f"5,{self.GPSpositionId},{self.lastGPSpostionSatellite},{self.lat},{self.lon},{self.alt}")
+            print(f"5,{self.GPSpositionId},{self.lastGPSpostionSatellite/1000},{self.lat},{self.lon},{self.alt}")
 
-            self.GPSpositionId += 1
+            self.GPSpositionId += 4
