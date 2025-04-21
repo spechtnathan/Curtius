@@ -10,6 +10,9 @@ class SAVE:
 
         self.filename = "0"
 
+        self.launchIndex = 0
+        self.launchBuffer = [0] * 30
+
         # Initialize SPI peripheral (start with 1 MHz)
         self.spi = machine.SPI(1,
                         baudrate=1000000,
@@ -60,13 +63,16 @@ class SAVE:
 
     def save_line(self, msg, bu):
         """Appends a line to the specified file on the SD card."""
-        with open(f"/sd/{self.filename}.sav", "a") as file:
+        with open(f"/sd/{self.filename}.sav", "ab") as file:
+            self.launchBuffer[self.launchIndex] = file.tell()
+            self.launchIndex = (self.launchIndex + 1) % 30
             file.write(msg + "\r\n")
+
         with open(f"/sd/bu_{self.filename}.sav", "a") as file:
             file.write(bu + "\r\n")
 
     def read_lines_bu(self, a, b):
-        with open(f"/sd/bu_{self.filename}", 'r') as file: 
+        with open(f"/sd/bu_{self.filename}.sav", 'r') as file: 
             lines = []
             for i, line in enumerate(file): 
                 if a <= i <= b:  # Read lines 3 to 5 (0-indexed) 
@@ -74,8 +80,20 @@ class SAVE:
 
             return lines
             
-    def read_lines(self, a, b):
-        with open(f"/sd/{self.filename}", 'r') as file: 
+    def read_lines(self, offset, number):
+        lines = []
+        with open(f"/sd/{self.filename}.sav", 'rb') as f:
+            f.seek(offset)
+            for _ in range(number):
+                line = f.readline()
+                if not line:
+                    break  # End of file
+                lines.append(line.strip())
+            next_offset = f.tell()  # position after reading
+        return lines, next_offset
+        
+    def read_lines_name(self, a, b, name):
+        with open(f"/sd/{name}.sav", 'rb') as file: 
             lines = []
             for i, line in enumerate(file): 
                 if a <= i <= b:  # Read lines 3 to 5 (0-indexed) 

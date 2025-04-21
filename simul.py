@@ -201,7 +201,7 @@ class SATELLITE:
                 self.minStr1, self.minStr2 = 100, 100
 
             elif(self.plCounter % 4 == 2 and self.working[2]):  # GPS
-                if self.gps.my_gps.valid:
+                if True:
                     self.getPos()
                     msg = struct.pack("Biifff", 3, self.plCounter, ctime, lat, lon, alt)
                     bu = f"3;{self.plCounter};{ctime};;;{lat};{lon};{alt};;;;;;;"

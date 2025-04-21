@@ -109,7 +109,7 @@ class SATELLITE:
             self.groundAlt = alt
         elif(self.groundAlt + 100 < alt and self.flightStat == 0): # if the altitude is higher than 100m, we are in flight
             self.flightStat = 1
-            self.startPl = self.plCounter - 30 # start the payloads
+            self.startPl = self.save.launchBuffer[(self.save.launchIndex + 2) % 30] # save the start of the payload
         elif(self.flightStat == 1 and self.maxAlt - 100 > alt):
             self.flightStat = 2
         elif(self.flightStat == 2 and self.groundAlt + 500 > alt):
@@ -145,17 +145,21 @@ class SATELLITE:
     def retransmit(self): # Retransmit the last packet if no data was received
         if self.lastPlRetransmitted == 0:
             self.lastPlRetransmitted = self.startPl
-        if self.plCounter - self.lastPlRetransmitted < 30:
-            self.lastPlRetransmitted = self.startPl
         if self.working[3] and self.working[4]:
-            datas = self.save.read_lines(self.lastPlRetransmitted + 1, self.lastPlRetransmitted + 31)
+            lastOffset = self.lastPlRetransmitted
+            datas, next_offset = self.save.read_lines(self.lastPlRetransmitted, 30)
             for data in datas:
                 try:
                     self.antenne.send(data)
+                    time.sleep(0.02)  # Adding a small delay to avoid overwhelming the antenna
                 except:
                     print("Error in retransmit")
                     pass
-        self.lastPlRetransmitted += 31
+            
+            if(next_offset - lastOffset < 100):
+                self.lastPlRetransmitted = self.startPl #Restart the retransmission if we are at the end of the file
+            else:
+                self.lastPlRetransmitted += next_offset
     def loop(self): # loop of the satellite
         global tem, pre, lat, lon, alt, ax, ay, az
         if self.working[5]:
@@ -208,7 +212,7 @@ class SATELLITE:
                     if self.working[4]:
                         self.save.save_line(msg, bu)
 
-                except NameError: # if no data, send an error packet (just 4), :( hope this doesn't happen
+                except: # if no data, send an error packet (just 4), :( hope this doesn't happen
                     try:
                         print(f"No data to send : {self.plCounter % 3}")
                         msg = struct.pack("Bii", 4, self.plCounter, ctime)
